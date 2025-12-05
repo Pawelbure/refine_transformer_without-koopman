@@ -2,7 +2,7 @@ import os
 import glob
 
 # ============================================================
-# Helper: find latest dataset / KoopmanAE
+# Helper: find latest dataset / Transformer
 # ============================================================
 def find_latest_dataset(pattern="*_dataset_*.npz", data_dir=""):
     search_pattern = os.path.join(data_dir, pattern)
@@ -14,24 +14,6 @@ def find_latest_dataset(pattern="*_dataset_*.npz", data_dir=""):
         )
     files = sorted(files)
     return files[-1]
-
-def find_latest_koopman(pattern="koopman_ae_*", ckpt_name="koopman_ae_best.pt", output_dir=""):
-    search_pattern = os.path.join(output_dir, pattern)
-    dirs = glob.glob(search_pattern)
-    if not dirs:
-        raise FileNotFoundError(
-            f"No KoopmanAE directories matching {search_pattern}. "
-            f"Run train_koopman_ae.py first."
-        )
-    dirs = sorted(dirs)
-    last_dir = dirs[-1]
-    ckpt_path = os.path.join(last_dir, ckpt_name)
-    if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(
-            f"Latest KoopmanAE dir found ({last_dir}) "
-            f"but checkpoint {ckpt_name} missing."
-        )
-    return last_dir, ckpt_path
 
 def find_latest_transformer(pattern="transformer_*", ckpt_name="transformer_best.pt", output_dir=""):
     search_pattern = os.path.join(output_dir, pattern)

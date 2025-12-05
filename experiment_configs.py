@@ -1,14 +1,7 @@
-# experiment_configs.py
-#
-# Central place for all hyperparameters:
-#   - data simulation
-#   - dataset splitting / windowing
-#   - KoopmanAE
-#   - Transformer
-#   - evaluation
-#
-# Add your own experiment entries to EXPERIMENTS below, e.g.
-# "experiment2_2025-12-01", etc.
+"""
+Experiment configuration registry.
+Now focused purely on the seq2seq Transformer (no Koopman autoencoder).
+"""
 
 from dataclasses import dataclass
 from typing import Dict, Any, Tuple
@@ -34,19 +27,8 @@ class DatasetConfig:
 
 
 @dataclass
-class KoopmanConfig:
-    LATENT_DIM: int
-    HIDDEN_DIM: int
-    LR: float
-    BATCH_SIZE: int
-    EPOCHS: int
-    KOOPMAN_LAMBDA: float
-    K_MAX: int          # multi-step consistency horizon
-
-
-@dataclass
 class TransformerConfig:
-    LATENT_DIM: int     # should match KoopmanConfig.LATENT_DIM
+    MODEL_DIM: int
     NHEAD: int
     NUM_LAYERS: int
     DIM_FEEDFORWARD: int
@@ -59,15 +41,12 @@ class TransformerConfig:
     X_WEIGHT: float
     TEACHER_FORCING_START: float
     TEACHER_FORCING_END: float
-    LATENT_NOISE_STD: float
+    INPUT_NOISE_STD: float
     GRAD_CLIP: float = 0.0
-    FINE_TUNE_ENCODER: bool = False
 
 
 @dataclass
 class EvalConfig:
-    # here you can put additional eval-specific params if needed
-    # e.g. OOD rollout horizon, etc.
     OOD_ROLLOUT_STEPS: int
 
 
@@ -77,7 +56,6 @@ class ExperimentConfig:
     DATA_ROOT: str
     simulation: SimulationConfig
     dataset: DatasetConfig
-    koopman: KoopmanConfig
     transformer: TransformerConfig
     eval: EvalConfig
 
@@ -85,7 +63,6 @@ class ExperimentConfig:
 # ----------------------------------------------------------------
 # Define experiments here
 # ----------------------------------------------------------------
-
 EXPERIMENTS: Dict[str, ExperimentConfig] = {}
 
 EXPERIMENTS["experiment1_2025-11-28"] = ExperimentConfig(
@@ -106,17 +83,8 @@ EXPERIMENTS["experiment1_2025-11-28"] = ExperimentConfig(
         TRAIN_FRAC=0.7,
         VAL_FRAC=0.15,
     ),
-    koopman=KoopmanConfig(
-        LATENT_DIM=8,
-        HIDDEN_DIM=64,
-        LR=1e-3,
-        BATCH_SIZE=32,
-        EPOCHS=20,
-        KOOPMAN_LAMBDA=1.0,
-        K_MAX=8,
-    ),
     transformer=TransformerConfig(
-        LATENT_DIM=8,       # must match koopman.LATENT_DIM
+        MODEL_DIM=128,
         NHEAD=4,
         NUM_LAYERS=6,
         DIM_FEEDFORWARD=256,
@@ -125,11 +93,11 @@ EXPERIMENTS["experiment1_2025-11-28"] = ExperimentConfig(
         BATCH_SIZE=32,
         EPOCHS=40,
         ROLLOUT_STEPS=40,
-        MAX_LEN_EXTRA=20,   # PE length = SEQ_LEN + ROLLOUT_STEPS + MAX_LEN_EXTRA
+        MAX_LEN_EXTRA=20,
         X_WEIGHT=1.5,
         TEACHER_FORCING_START=0.9,
         TEACHER_FORCING_END=0.0,
-        LATENT_NOISE_STD=0.01,
+        INPUT_NOISE_STD=0.01,
     ),
     eval=EvalConfig(
         OOD_ROLLOUT_STEPS=400,
@@ -154,17 +122,8 @@ EXPERIMENTS["experiment2_2025-11-28_high-variance"] = ExperimentConfig(
         TRAIN_FRAC=0.7,
         VAL_FRAC=0.15,
     ),
-    koopman=KoopmanConfig(
-        LATENT_DIM=8,
-        HIDDEN_DIM=64,
-        LR=1e-3,
-        BATCH_SIZE=64,
-        EPOCHS=4,
-        KOOPMAN_LAMBDA=5.0,
-        K_MAX=8,
-    ),
     transformer=TransformerConfig(
-        LATENT_DIM=8,       # must match koopman.LATENT_DIM
+        MODEL_DIM=128,
         NHEAD=4,
         NUM_LAYERS=6,
         DIM_FEEDFORWARD=256,
@@ -173,11 +132,11 @@ EXPERIMENTS["experiment2_2025-11-28_high-variance"] = ExperimentConfig(
         BATCH_SIZE=64,
         EPOCHS=12,
         ROLLOUT_STEPS=120,
-        MAX_LEN_EXTRA=20,   # PE length = SEQ_LEN + ROLLOUT_STEPS + MAX_LEN_EXTRA
+        MAX_LEN_EXTRA=20,
         X_WEIGHT=1.5,
         TEACHER_FORCING_START=0.9,
         TEACHER_FORCING_END=0.0,
-        LATENT_NOISE_STD=0.015,
+        INPUT_NOISE_STD=0.015,
     ),
     eval=EvalConfig(
         OOD_ROLLOUT_STEPS=400,
@@ -198,101 +157,45 @@ EXPERIMENTS["test_experiment"] = ExperimentConfig(
     ),
     dataset=DatasetConfig(
         SEQ_LEN=20,
-        HORIZON=10,
+        HORIZON=5,
         TRAIN_FRAC=0.7,
         VAL_FRAC=0.15,
     ),
-    koopman=KoopmanConfig(
-        LATENT_DIM=32,
-        HIDDEN_DIM=128,
-        LR=1e-3,
-        BATCH_SIZE=64,
-        EPOCHS=80,
-        KOOPMAN_LAMBDA=10.0,
-        K_MAX=10,
-    ),
     transformer=TransformerConfig(
-        LATENT_DIM=32,       # must match koopman.LATENT_DIM
-        NHEAD=8,
-        NUM_LAYERS=12,
-        DIM_FEEDFORWARD=256,
-        DROPOUT=0.1,
+        MODEL_DIM=64,
+        NHEAD=4,
+        NUM_LAYERS=2,
+        DIM_FEEDFORWARD=128,
+        DROPOUT=0.0,
         LR=1e-3,
-        BATCH_SIZE=64,
-        EPOCHS=100,
-        ROLLOUT_STEPS=10,
-        MAX_LEN_EXTRA=50,   # PE length = SEQ_LEN + ROLLOUT_STEPS + MAX_LEN_EXTRA
-        X_WEIGHT=1.0,
-        TEACHER_FORCING_START=0.6,
-        TEACHER_FORCING_END=0.2,
-        LATENT_NOISE_STD=0.01,
-    ),
-    eval=EvalConfig(
-        OOD_ROLLOUT_STEPS=400,
-    ),
-)
-
-EXPERIMENTS["test_experiment2"] = ExperimentConfig(
-    name="test_experiment2",
-    DATA_ROOT="data",
-    simulation=SimulationConfig(
-        PROBLEM="two_body_problem",
-        G=1.0,
-        T_SPAN=(0.0, 10.0),
-        NUM_STEPS=500,
-        NUM_TRAJECTORIES=600,
-        NUM_TRAJ_OOD=3,
-        PERTURBATION=0.4,
-    ),
-    dataset=DatasetConfig(
-        SEQ_LEN=40,
-        HORIZON=20,
-        TRAIN_FRAC=0.7,
-        VAL_FRAC=0.15,
-    ),
-    koopman=KoopmanConfig(
-        LATENT_DIM=16,
-        HIDDEN_DIM=128,
-        LR=5e-4,
-        BATCH_SIZE=64,
-        EPOCHS=180,
-        KOOPMAN_LAMBDA=10.0,
-        K_MAX=4,
-    ),
-    transformer=TransformerConfig(
-        LATENT_DIM=16,       # must match koopman.LATENT_DIM
-        NHEAD=8,
-        NUM_LAYERS=12,
-        DIM_FEEDFORWARD=256,
-        DROPOUT=0.1,
-        LR=4e-4,
-        BATCH_SIZE=64,
-        EPOCHS=200,
+        BATCH_SIZE=16,
+        EPOCHS=10,
         ROLLOUT_STEPS=20,
-        MAX_LEN_EXTRA=30,   # PE length = SEQ_LEN + ROLLOUT_STEPS + MAX_LEN_EXTRA
+        MAX_LEN_EXTRA=10,
         X_WEIGHT=1.0,
-        TEACHER_FORCING_START=0.6,
-        TEACHER_FORCING_END=0.2,
-        LATENT_NOISE_STD=0.01,
+        TEACHER_FORCING_START=1.0,
+        TEACHER_FORCING_END=0.5,
+        INPUT_NOISE_STD=0.0,
     ),
     eval=EvalConfig(
-        OOD_ROLLOUT_STEPS=400,
+        OOD_ROLLOUT_STEPS=50,
     ),
 )
-
-
-# ----------------------------------------------------------------
-# Helper API
-# ----------------------------------------------------------------
 
 DEFAULT_EXPERIMENT = "experiment1_2025-11-28"
 
 
-def get_experiment_config(name: str = None) -> ExperimentConfig:
-    if name is None:
-        name = DEFAULT_EXPERIMENT
+def get_experiment_config(name: str) -> ExperimentConfig:
     if name not in EXPERIMENTS:
-        raise KeyError(
-            f"Unknown experiment '{name}'. Available: {list(EXPERIMENTS.keys())}"
-        )
+        raise ValueError(f"Unknown experiment config '{name}'")
     return EXPERIMENTS[name]
+
+
+def get_experiments() -> Dict[str, ExperimentConfig]:
+    return EXPERIMENTS
+
+
+if __name__ == "__main__":
+    import json
+    configs_as_dict = {name: cfg.__dict__ for name, cfg in EXPERIMENTS.items()}
+    print(json.dumps(configs_as_dict, indent=2))

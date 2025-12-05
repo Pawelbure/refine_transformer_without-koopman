@@ -9,15 +9,12 @@ call D:\python_envs\DL_cuda\Scripts\activate.bat
 
 @echo off
 set EXP=%1
-set KOOPMAN_FLAG=%2
-
 if "%EXP%"=="" (
-    echo Usage: run_experiment.bat experiment_name [--reuse_koopman]
+    echo Usage: run_experiment.bat experiment_name
     exit /b 1
 )
 
 python generate_two_body_datasets.py --experiment %EXP%
-python train_koopman_ae.py           --experiment %EXP% %KOOPMAN_FLAG%
 python train_transformer.py          --experiment %EXP%
 python use_models.py                 --experiment %EXP%
 
