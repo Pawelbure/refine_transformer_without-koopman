@@ -1,0 +1,25 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Experiment artifacts
+outputs/
+*/outputs/
+*/transformer_*/
+*/koopman_*/
+*.png
+saved_experiments/
+
+# Datasets and generated data
+data/
+*/data/
+*.npz
+
+# Logs and checkpoints
+*.pt
+*.ckpt
+*.log
+
+# OS-specific
+.DS_Store
